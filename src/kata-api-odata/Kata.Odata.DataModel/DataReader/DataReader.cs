@@ -31,13 +31,13 @@ public class DataReader : IDataReader
         return connection;
     }
 
-    public async Task<IEnumerable<dynamic>> QueryAsync(string sqlCommand, object parameter)
+    public async Task<IEnumerable<dynamic>> QueryAsync(string sqlCommand, DynamicParameters? param = null)
     {
         using var connection = CreateConnection();
-        return await connection.QueryAsync(sqlCommand, parameter);
+        return await connection.QueryAsync(sqlCommand, param);
     }
 
-    public async Task<int> CountAsync(string sqlCommand, object? param = null)
+    public async Task<int> CountAsync(string sqlCommand, DynamicParameters? param = null)
     {
         if (!sqlCommand.Contains($"[{nameof(CounterResult.Count)}]"))
             throw new InvalidExpressionException($"{nameof(sqlCommand)} must contains a variable called '[{nameof(CounterResult.Count)}]' to use this method.");

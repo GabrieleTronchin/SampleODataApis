@@ -1,3 +1,4 @@
+using Kata.Odata.Api.Helper;
 using Kata.Odata.Domain;
 using Microsoft.AspNetCore.Mvc;
 

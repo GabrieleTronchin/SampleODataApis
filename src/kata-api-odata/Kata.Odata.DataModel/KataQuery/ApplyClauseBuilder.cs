@@ -2,7 +2,7 @@
 using Microsoft.OData.UriParser.Aggregation;
 using SqlKata;
 
-namespace Kata.QueryBuilder.Clause
+namespace Kata.Odata.DataModel.KataQuery
 {
 
     /// <summary>

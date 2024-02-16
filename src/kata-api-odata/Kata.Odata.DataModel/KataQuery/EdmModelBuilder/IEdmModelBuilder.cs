@@ -1,4 +1,4 @@
-﻿namespace Kata.Odata.DataModel.KataQuery
+﻿namespace Kata.Odata.DataModel.KataQuery.EdmModel
 {
     using Microsoft.OData.Edm;
 

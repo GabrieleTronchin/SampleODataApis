@@ -1,6 +1,6 @@
 ﻿using Microsoft.OData.Edm;
 
-namespace Kata.QueryBuilder
+namespace Kata.Odata.DataModel.KataQuery.EdmModel
 {
     public class EdmModelBuilder : IEdmModelBuilder
     {

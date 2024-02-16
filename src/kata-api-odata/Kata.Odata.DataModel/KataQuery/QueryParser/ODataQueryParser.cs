@@ -1,44 +1,36 @@
-﻿using ComplexFilters.Abstractions.Models;
-using Kata.QueryBuilder.Clause;
-using Kata.QueryBuilder.ComplexFilters;
-using Kata.QueryBuilder.Models;
+﻿using Dapper;
+using Kata.Odata.DataModel.DataReader;
+using Kata.Odata.DataModel.KataQuery.EdmModel;
+using Kata.Odata.DataModel.KataQuery.Models;
 using Microsoft.OData.UriParser;
-using SQL.ReadModel.Context;
 using SqlKata;
 using SqlKata.Compilers;
 
-namespace Kata.QueryBuilder
+namespace Kata.Odata.DataModel.KataQuery.QueryParser
 {
 
     public class ODataQueryParser : IODataQueryParser
     {
         private readonly SqlServerCompiler _sqlKataCompiler;
-        private readonly IReaderDapperContext _readContext;
         private readonly IEdmModelBuilder _edmModelBuilder;
-        private readonly IKataComplexFilterManager _kataComplexFilterManager;
+        private readonly IDataReader _readContext;
 
-        private const string CUSTOM_SCHEMA = "custom";
-
-        public ODataQueryParser(IReaderDapperContext readContext,
-                                IEdmModelBuilder edmModelBuilder,
-                                IKataComplexFilterManager kataComplexFilterManager)
+        public ODataQueryParser(IEdmModelBuilder edmModelBuilder, IDataReader dapper)
         {
             _sqlKataCompiler = new SqlServerCompiler { UseLegacyPagination = false };
-            _readContext = readContext;
             _edmModelBuilder = edmModelBuilder;
-            _kataComplexFilterManager = kataComplexFilterManager;
+            _readContext = dapper;
         }
 
-        public async Task<ODataQueryResult> ExecuteQuery<T>(Dictionary<string, string> options, string schema, string tableName,
-            IEnumerable<ComplexFilter>? defaultFilters = default) where T : class
+        public async Task<ODataQueryResult> ExecuteQueryAsync<T>(Dictionary<string, string> options, string schema, string tableName) where T : class
         {
             ODataQueryResult oDataQueryResult = new();
 
-            string entityName = await GetEntityName(schema, tableName); //ritorna il nome dell'entità su cui eseguire la query
+            string entityName = $"{schema}.{tableName}";
 
             var parser = await CreateEdmModel(entityName, options);
 
-            var queries = await BuildQuery<T>(parser, entityName, defaultFilters);
+            var queries = await BuildQuery<T>(parser, entityName);
 
             foreach (var query in queries)
             {
@@ -55,76 +47,61 @@ namespace Kata.QueryBuilder
             return oDataQueryResult;
         }
 
-        public async Task<Query> CreateQuery<T>(Dictionary<string, string> options, string schema, string tableName,
-            IEnumerable<ComplexFilter>? defaultFilters = default) where T : class
+        public async Task<Query> CreateQueryAsync<T>(Dictionary<string, string> options, string schema, string tableName) where T : class
         {
-            //ritorna l'oggetto Query, il quale può essere alterato, aggiungendo condizioni, prima di eseguire le query vera e propria
-            string entityName = await GetEntityName(schema, tableName); //ritorna il nome dell'entità su cui eseguire la query
+            string entityName = $"{schema}.{tableName}";
 
             ODataQueryOptionParser parser = await CreateEdmModel(entityName, options);
 
-            var query = await BuildQueryCore<T>(parser, entityName, defaultFilters);
+            var query = await BuildQueryCore<T>(parser, entityName);
 
             return query;
         }
 
-        public async Task<List<SqlQueryToExecute>> GetQueryToExecuteAsync(Query queryIn)
+        public async Task<List<BuilderQueryResult>> GetQueryToExecuteAsync(Query queryIn)
         {
-            //ritorna le query da eseguire
             return await Task.Run(() =>
              {
-                 List<SqlQueryToExecute> queries = new();
-
+                 List<BuilderQueryResult> queries = [];
                  var clonedQuery = queryIn.Clone();
-
                  queries.Add(CompileSqlKataQuery(clonedQuery.AsCount(), true));
                  queries.Add(CompileSqlKataQuery(queryIn));
-
                  return queries;
              });
         }
 
-        public async Task<SqlDapperQuery> GetSqlQuery(Query queryIn, bool bCount = false)
+        public async Task<SqlQuery> GenerateQuery(Query queryIn, bool isCount = false)
         {
             return await Task.Run(() =>
             {
-                SqlDapperQuery sqlDapperQuery = new SqlDapperQuery();
+                SqlQuery sqlDapperQuery = new();
+                BuilderQueryResult? queryToExecute = default;
 
-                SqlQueryToExecute? queryToExecute = null;
-
-                if (bCount)
+                if (isCount)
                 {
-                    //ritorna la query da eseguire per avere il count dei record 
                     var clonedQuery = queryIn.Clone();
                     queryToExecute = CompileSqlKataQuery(clonedQuery.AsCount(), true);
                 }
                 else
                 {
-                    //ritorna la query da eseguire per ottenere i dati
                     queryToExecute = CompileSqlKataQuery(queryIn);
                 }
 
                 if (queryToExecute != null)
                 {
-                    //comando sql
                     sqlDapperQuery.SqlCommand = queryToExecute.TSqlQuery;
-
-                    //parametri                    
-                    sqlDapperQuery.Parameters = new Dapper.DynamicParameters(queryToExecute.Parameters);
+                    sqlDapperQuery.Parameters = new DynamicParameters(queryToExecute.Parameters);
                 }
 
                 return sqlDapperQuery;
             });
         }
 
-
-        public async Task<ODataQueryResult> ExecQuery(Query queryIn)
+        public async Task<ODataQueryResult> ExecuteQueryAsync(Query queryIn)
         {
-            //esegue la query odata
-
             ODataQueryResult oDataQueryResult = new();
 
-            List<SqlQueryToExecute> queries = await GetQueryToExecuteAsync(queryIn);
+            List<BuilderQueryResult> queries = await GetQueryToExecuteAsync(queryIn);
 
             foreach (var query in queries)
             {
@@ -140,7 +117,6 @@ namespace Kata.QueryBuilder
 
             return oDataQueryResult;
         }
-
 
         private async Task<ODataQueryOptionParser> CreateEdmModel(string tableName, Dictionary<string, string> options)
         {
@@ -155,32 +131,12 @@ namespace Kata.QueryBuilder
             return parser;
         }
 
-        private async Task<string> GetEntityName(string schema, string tableName)
-        {
-            //controllo esistenza vista custom                     
-
-            Query q = new Query("INFORMATION_SCHEMA.VIEWS");
-            q.Where("TABLE_NAME", $"'{tableName}'");
-            q.Where("TABLE_SCHEMA", $"'{CUSTOM_SCHEMA}'");
-
-            SqlQueryToExecute sqlQuery = CompileSqlKataQuery(q.AsCount(), true);
-
-            int count = await _readContext.CountAsync(sqlQuery.TSqlQuery, sqlQuery.Parameters);
-            if (count > 0)
-            {
-                schema = CUSTOM_SCHEMA;
-            }
-
-            return $"{schema}.{tableName}";
-        }
-
-        private async Task<IList<SqlQueryToExecute>> BuildQuery<T>(ODataQueryOptionParser parser, string tableName,
-                                                                    IEnumerable<ComplexFilter>? defaultFilters = default) where T : class
+        private async Task<IList<BuilderQueryResult>> BuildQuery<T>(ODataQueryOptionParser parser, string tableName) where T : class
         {
 
-            Query query = await BuildQueryCore<T>(parser, tableName, defaultFilters);
+            Query query = await BuildQueryCore<T>(parser, tableName);
 
-            List<SqlQueryToExecute> queries = new();
+            List<BuilderQueryResult> queries = [];
 
             var clonedQuery = query.Clone();
             queries.Add(CompileSqlKataQuery(clonedQuery.AsCount(), true));
@@ -189,8 +145,7 @@ namespace Kata.QueryBuilder
             return queries;
         }
 
-        private async Task<Query> BuildQueryCore<T>(ODataQueryOptionParser parser, string tableName,
-                                                IEnumerable<ComplexFilter>? defaultFilters = default) where T : class
+        private async Task<Query> BuildQueryCore<T>(ODataQueryOptionParser parser, string tableName) where T : class
         {
 
             var applyClause = parser.ParseApply();
@@ -215,8 +170,6 @@ namespace Kata.QueryBuilder
             {
                 query = filterClause.Expression.Accept(new FilterClauseBuilder(query, true));
             }
-
-            query = await _kataComplexFilterManager.ApplyFilters<T>(query, tableName, defaultFilters);
 
             if (top != null)
             {
@@ -248,8 +201,6 @@ namespace Kata.QueryBuilder
 
             return query;
         }
-
-
 
         private static Query BuildSelectClause(Query query, SelectExpandClause selectClause)
         {
@@ -289,23 +240,10 @@ namespace Kata.QueryBuilder
             return query;
         }
 
-        private static Query BuildWhereClause(Query query, IEnumerable<WhereFilter> whereFilters)
-        {
-            //crea where 
-
-            foreach (var filter in whereFilters)
-            {
-                query.Clauses.AddRange(query.Clauses);
-            }
-
-            return query;
-        }
-
-
-        private SqlQueryToExecute CompileSqlKataQuery(Query query, bool isCount = false)
+        private BuilderQueryResult CompileSqlKataQuery(Query query, bool isCount = false)
         {
             var sqlResult = _sqlKataCompiler.Compile(query);
-            return new SqlQueryToExecute() { IsCountQuery = isCount, TSqlQuery = sqlResult.Sql, Parameters = sqlResult.NamedBindings };
+            return new BuilderQueryResult() { IsCountQuery = isCount, TSqlQuery = sqlResult.Sql, Parameters = sqlResult.NamedBindings };
         }
 
     }

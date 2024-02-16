@@ -3,7 +3,7 @@ using SqlKata;
 using System.Globalization;
 
 
-namespace Kata.Odata.DataModel.KataQuery.Clause
+namespace Kata.Odata.DataModel.KataQuery
 {
 
     /// <summary>

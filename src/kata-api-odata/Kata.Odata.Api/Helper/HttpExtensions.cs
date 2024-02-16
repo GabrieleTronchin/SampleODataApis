@@ -1,4 +1,4 @@
-﻿namespace Kata.Odata.Api
+﻿namespace Kata.Odata.Api.Helper
 {
     public static class HttpRequestExtensions
     {
@@ -10,20 +10,18 @@
             Request.Query.TryGetValue("$filter", out var filter);
             Request.Query.TryGetValue("$orderby", out var orderby);
             Request.Query.TryGetValue("$skip", out var skip);
-            bool bTop = Request.Query.TryGetValue("$top", out var top);
-
-            //if (string.IsNullOrEmpty(top)) top = "10";
+            bool hasTopLimit = Request.Query.TryGetValue("$top", out var top);
             if (string.IsNullOrEmpty(skip)) skip = "0";
 
-            Dictionary<string, string> options = new Dictionary<string, string>
-                                                 {
+            Dictionary<string, string> options = new()
+            {
                                                    { "select", select.ToString() },
                                                    { "filter", filter.ToString() },
                                                    { "orderby", orderby.ToString() },
                                                    { "skip", skip.ToString() }
                                                  };
 
-            if (bTop) options.Add("top", top.ToString());
+            if (hasTopLimit) options.Add("top", top.ToString());
 
             return options;
 

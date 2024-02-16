@@ -1,5 +1,5 @@
 ﻿using Kata.Odata.DataModel.DataReader;
-using Kata.Odata.DataModel.KataQuery;
+using Kata.Odata.DataModel.KataQuery.QueryBuilder;
 
 namespace Kata.Odata.Domain
 {

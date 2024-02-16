@@ -1,37 +1,43 @@
-﻿using Kata.QueryBuilder.Clause;
-using Kata.QueryBuilder.Models;
+﻿using Dapper;
+using Kata.Odata.DataModel.KataQuery.EdmModel;
+using Kata.Odata.DataModel.KataQuery.Models;
+using Kata.Odata.DataModel.KataQuery.QueryBuilder;
 using Microsoft.OData.UriParser;
-using SQL.ReadModel.Context;
 using SqlKata;
 using SqlKata.Compilers;
 
 
-namespace Kata.QueryBuilder
+namespace Kata.Odata.DataModel.KataQuery
 {
 
     public class ODataQueryBuilder : IODataQueryBuilder
     {
         private readonly SqlServerCompiler _sqlKataCompiler;
         private readonly IEdmModelBuilder _edmModelBuilder;
-        private readonly IReaderDapperContext _reader;
 
-        private const string CUSTOM_SCHEMA = "custom";
-
-        public ODataQueryBuilder(IReaderDapperContext readContext,
-                                IEdmModelBuilder edmModelBuilder)
+        public ODataQueryBuilder(IEdmModelBuilder edmModelBuilder)
         {
             _sqlKataCompiler = new SqlServerCompiler { UseLegacyPagination = false };
             _edmModelBuilder = edmModelBuilder;
-            _reader = readContext;
         }
+
+
+
+        public async Task<Query> CreateQuery<T>(Dictionary<string, string> options, string viewName)
+            where T : class
+        {
+            QueryInfo info = await CreateQueryCore<T>(options, viewName);
+            return info.Query ?? throw new ArgumentNullException("Cannot generate any Kata Query");
+        }
+
 
         private async Task<QueryInfo> CreateQueryCore<T>(Dictionary<string, string> options, string viewName)
            where T : class
         {
-            //ritorna l'oggetto Query, il quale può essere alterato, aggiungendo condizioni, prima di eseguire le query vera e propria
-            QueryInfo info = new QueryInfo();
-
-            info.EntityName = viewName; // await GetEntityName(schema, tableName); //ritorna il nome dell'entità su cui eseguire la query
+            QueryInfo info = new QueryInfo
+            {
+                EntityName = viewName
+            };
 
             ODataQueryOptionParser parser = await CreateEdmModel(info.EntityName, options);
 
@@ -40,48 +46,21 @@ namespace Kata.QueryBuilder
             return info;
         }
 
-        public async Task<Query> CreateQuery<T>(Dictionary<string, string> options, string viewName)
-            where T : class
-        {
-            //ritorna l'oggetto Query, il quale può essere alterato, aggiungendo condizioni, prima di eseguire le query vera e propria
-            QueryInfo info = await CreateQueryCore<T>(options, viewName);
-            return info.Query;
-        }
 
 
         public async Task<Query> CreateQuery<T>(Dictionary<string, string> options, string viewName, IEnumerable<int> aOrgs)
         where T : class
         {
-            //ritorna l'oggetto Query, il quale può essere alterato, aggiungendo condizioni, prima di eseguire le query vera e propria
-            //all'oggetto query sono state aggiunte le condizioni where per fare il filtro struttura
             QueryInfo info = await CreateQueryCore<T>(options, viewName);
-
-            //aggiunge filtro struttura
-            await AddWhereStruct(info, aOrgs);
-
-            return info.Query;
+            return info.Query ?? throw new ArgumentNullException("Cannot generate any Kata Query");
         }
 
-        public async Task AddWhereStruct(QueryInfo info, IEnumerable<int> aOrgs)
-        {
-            //verifico se c'è il campo struttura
-            IEnumerable<string> columns = await _reader.GetColumnsAsync(info.EntityName);
-            if (columns.Contains("IKSTRDEF"))
-            {
-                info.Query.WhereIn("IKSTRDEF", aOrgs);
-            }
-            if (columns.Contains("IDSTRDEF"))
-            {
-                info.Query.WhereIn("IDSTRDEF", aOrgs);
-            }
-        }
 
-        public async Task<List<SqlQueryToExecute>> GetQueryToExecuteAsync(Query queryIn)
+        public async Task<List<BuilderQueryResult>> GetQueryToExecuteAsync(Query queryIn)
         {
-            //ritorna le query da eseguire
             return await Task.Run(() =>
              {
-                 List<SqlQueryToExecute> queries = new();
+                 List<BuilderQueryResult> queries = new();
 
                  var clonedQuery = queryIn.Clone();
 
@@ -92,33 +71,27 @@ namespace Kata.QueryBuilder
              });
         }
 
-        public async Task<SqlDapperQuery> GetSqlQuery(Query queryIn, bool bCount = false)
+        public async Task<SqlQuery> GetSqlQuery(Query queryIn, bool includeCount = false)
         {
             return await Task.Run(() =>
             {
-                SqlDapperQuery sqlDapperQuery = new SqlDapperQuery();
+                SqlQuery sqlDapperQuery = new();
+                BuilderQueryResult? queryToExecute = null;
 
-                SqlQueryToExecute? queryToExecute = null;
-
-                if (bCount)
+                if (includeCount)
                 {
-                    //ritorna la query da eseguire per avere il count dei record 
                     var clonedQuery = queryIn.Clone();
                     queryToExecute = CompileSqlKataQuery(clonedQuery.AsCount(), true);
                 }
                 else
                 {
-                    //ritorna la query da eseguire per ottenere i dati
                     queryToExecute = CompileSqlKataQuery(queryIn);
                 }
 
                 if (queryToExecute != null)
                 {
-                    //comando sql
                     sqlDapperQuery.SqlCommand = queryToExecute.TSqlQuery;
-
-                    //parametri                    
-                    sqlDapperQuery.Parameters = new Dapper.DynamicParameters(queryToExecute.Parameters);
+                    sqlDapperQuery.Parameters = new DynamicParameters(queryToExecute.Parameters);
                 }
 
                 return sqlDapperQuery;
@@ -138,32 +111,13 @@ namespace Kata.QueryBuilder
             return parser;
         }
 
-        //private async Task<string> GetEntityName(string schema, string tableName)
-        //{
-        //    //controllo esistenza vista custom                     
-
-        //    Query q = new Query("INFORMATION_SCHEMA.VIEWS");
-        //    q.Where("TABLE_NAME", $"'{tableName}'");
-        //    q.Where("TABLE_SCHEMA", $"'{CUSTOM_SCHEMA}'");
-
-        //    SqlQueryToExecute sqlQuery = CompileSqlKataQuery(q.AsCount(), true);
-
-        //    int count = await _reader.CountAsync(sqlQuery.TSqlQuery, sqlQuery.Parameters);
-        //    if (count > 0)
-        //    {
-        //        schema = CUSTOM_SCHEMA;
-        //    }
-
-        //    return $"{schema}.{tableName}";
-        //}
-
-        private async Task<IList<SqlQueryToExecute>> BuildQuery<T>(ODataQueryOptionParser parser, string tableName)
+        private async Task<IList<BuilderQueryResult>> BuildQuery<T>(ODataQueryOptionParser parser, string tableName)
             where T : class
         {
 
             Query query = await BuildQueryCore<T>(parser, tableName);
 
-            List<SqlQueryToExecute> queries = new();
+            List<BuilderQueryResult> queries = new();
 
             var clonedQuery = query.Clone();
             queries.Add(CompileSqlKataQuery(clonedQuery.AsCount(), true));
@@ -269,23 +223,10 @@ namespace Kata.QueryBuilder
             return query;
         }
 
-        private static Query BuildWhereClause(Query query, IEnumerable<WhereFilter> whereFilters)
-        {
-            //crea where 
-
-            foreach (var filter in whereFilters)
-            {
-                query.Clauses.AddRange(query.Clauses);
-            }
-
-            return query;
-        }
-
-
-        private SqlQueryToExecute CompileSqlKataQuery(Query query, bool isCount = false)
+        private BuilderQueryResult CompileSqlKataQuery(Query query, bool isCount = false)
         {
             var sqlResult = _sqlKataCompiler.Compile(query);
-            return new SqlQueryToExecute() { IsCountQuery = isCount, TSqlQuery = sqlResult.Sql, Parameters = sqlResult.NamedBindings };
+            return new BuilderQueryResult() { IsCountQuery = isCount, TSqlQuery = sqlResult.Sql, Parameters = sqlResult.NamedBindings };
         }
 
     }
