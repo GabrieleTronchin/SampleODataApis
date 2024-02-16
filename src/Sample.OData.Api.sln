@@ -1,0 +1,67 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34316.72
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ODataClassic", "ODataClassic", "{A3C66379-2443-42E0-89BC-864F0A9711A3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ODataKata", "ODataKata", "{BAB7234F-0467-43D4-852E-2B101E50CEAE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Classic.Odata.Api", "classic-api-odata\Classic.Odata.Api\Classic.Odata.Api.csproj", "{E355773D-382C-4356-9516-C04A49696411}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Classic.Odata.Domain", "classic-api-odata\Classic.Odata.Domain\Classic.Odata.Domain.csproj", "{71B6828E-3014-4318-B44D-C3A032A6665F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Classic.Odata.DataModel", "classic-api-odata\Classic.Odata.DataModel\Classic.Odata.DataModel.csproj", "{13FCBDFC-F031-4C22-B062-6980A0FFBD4E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kata.Odata.Api", "kata-api-odata\Kata.Odata.Api\Kata.Odata.Api.csproj", "{D0F2B456-1CA0-4A57-955F-114C40C2542C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kata.Odata.Domain", "kata-api-odata\Kata.Odata.Domain\Kata.Odata.Domain.csproj", "{BE8EDF1A-031E-4D65-B481-8D1D3CBD6CD2}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kata.Odata.DataModel", "kata-api-odata\Kata.Odata.DataModel\Kata.Odata.DataModel.csproj", "{70D23C04-1E05-47F3-BE02-8B5F171AF6D4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E355773D-382C-4356-9516-C04A49696411}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E355773D-382C-4356-9516-C04A49696411}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E355773D-382C-4356-9516-C04A49696411}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E355773D-382C-4356-9516-C04A49696411}.Release|Any CPU.Build.0 = Release|Any CPU
+		{71B6828E-3014-4318-B44D-C3A032A6665F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{71B6828E-3014-4318-B44D-C3A032A6665F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{71B6828E-3014-4318-B44D-C3A032A6665F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{71B6828E-3014-4318-B44D-C3A032A6665F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{13FCBDFC-F031-4C22-B062-6980A0FFBD4E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{13FCBDFC-F031-4C22-B062-6980A0FFBD4E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{13FCBDFC-F031-4C22-B062-6980A0FFBD4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{13FCBDFC-F031-4C22-B062-6980A0FFBD4E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D0F2B456-1CA0-4A57-955F-114C40C2542C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D0F2B456-1CA0-4A57-955F-114C40C2542C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D0F2B456-1CA0-4A57-955F-114C40C2542C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D0F2B456-1CA0-4A57-955F-114C40C2542C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BE8EDF1A-031E-4D65-B481-8D1D3CBD6CD2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BE8EDF1A-031E-4D65-B481-8D1D3CBD6CD2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BE8EDF1A-031E-4D65-B481-8D1D3CBD6CD2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BE8EDF1A-031E-4D65-B481-8D1D3CBD6CD2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{70D23C04-1E05-47F3-BE02-8B5F171AF6D4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{70D23C04-1E05-47F3-BE02-8B5F171AF6D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{70D23C04-1E05-47F3-BE02-8B5F171AF6D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{70D23C04-1E05-47F3-BE02-8B5F171AF6D4}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{E355773D-382C-4356-9516-C04A49696411} = {A3C66379-2443-42E0-89BC-864F0A9711A3}
+		{71B6828E-3014-4318-B44D-C3A032A6665F} = {A3C66379-2443-42E0-89BC-864F0A9711A3}
+		{13FCBDFC-F031-4C22-B062-6980A0FFBD4E} = {A3C66379-2443-42E0-89BC-864F0A9711A3}
+		{D0F2B456-1CA0-4A57-955F-114C40C2542C} = {BAB7234F-0467-43D4-852E-2B101E50CEAE}
+		{BE8EDF1A-031E-4D65-B481-8D1D3CBD6CD2} = {BAB7234F-0467-43D4-852E-2B101E50CEAE}
+		{70D23C04-1E05-47F3-BE02-8B5F171AF6D4} = {BAB7234F-0467-43D4-852E-2B101E50CEAE}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {9BCD67C9-2E06-449D-BD17-9254A91AE167}
+	EndGlobalSection
+EndGlobal
