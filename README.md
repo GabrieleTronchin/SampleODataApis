@@ -1,10 +1,22 @@
-# Sample OData Implementations
+# OData Implementations
 
-## Classic Approch
+OData is Open Data Protocol, it is a REST-based protocol for querying and updating data.
 
-[OdataSample](https://medium.com/@abhi.bansal08/why-odata-and-how-to-enable-odata-in-c-net-core-application-1f13ad6ca3d1)
+TODO Project on a Draft status
+
+## Classic Approch OData + EF
+
+OData can be used with Entity Framework for data manipulation
+
+[OdataSample](https://github.com/OData/AspNetCoreOData)
 
 
 ## Kata query builder with Dynamic EDF Model
 
 [kata](https://sqlkata.com/)
+
+SqlKata Query Builder is a powerful Sql Query Builder written in C#.
+It's secure and framework agnostic. Inspired by the top Query Builders available, like Laravel Query Builder and Knex.
+
+-generate a dynamic EDM Model
+-use Kata to generate T-SQL
