@@ -1,33 +1,29 @@
 # OData Implementations
 
-  Status of the project: ***Draft***
+**Project Status:** *Draft*
 
-Target of this project is try two different way of implement OData in .NET.
+The aim of this project is to explore two different approaches to implementing OData in .NET.
 
-  About OData:
+### About OData:
 
-> OData(Open Data Protocol) protocol is created to provide us filtering,
-> expanding, sorting, paging abilities over URL. 
+The Open Data Protocol (OData) is designed to provide functionalities such as filtering, expanding, sorting, and paging via URLs.
 
-More info: [odata](https://www.odata.org/)
+More information: [odata](https://www.odata.org/)
 
-## OData with Entity Framework 
+## OData with Entity Framework
 
-A classic approch is to combine OData and Entity Framework to allow an automatic data manipulation.
+One common approach is to integrate OData with Entity Framework, enabling automatic data manipulation.
 
-[OdataSample](https://github.com/OData/AspNetCoreOData)
-[MediumArticle](https://medium.com/@ibrahimozgon/asp-net-core-odata-query-database-over-url-820624beef92)
+- Sample Repository: [OdataSample](https://github.com/OData/AspNetCoreOData)
+- Relevant Article: [MediumArticle](https://medium.com/@ibrahimozgon/asp-net-core-odata-query-database-over-url-820624beef92)
 
+## Kata Query Builder with Dynamic EDF Model
 
-## Kata query builder with Dynamic EDF Model
+This approach utilizes Kata instead of Entity Framework to generate valid T-SQL queries.
 
-This approch use Kata insted of Entity Framework to generate a valid T-SQL.
+**SqlKata Query Builder** is a robust SQL query builder implemented in C#. It prioritizes security and is framework-agnostic, drawing inspiration from top Query Builders like Laravel Query Builder and Knex.
 
-    SqlKata Query Builder is a powerful Sql Query Builder written in C#.
-    It's secure and framework agnostic.
-    Inspired by the top Query Builders available, like Laravel Query Builder and Knex.
-    
-[kata](https://sqlkata.com/)
+[Learn more about Kata](https://sqlkata.com/)
 
 
 
