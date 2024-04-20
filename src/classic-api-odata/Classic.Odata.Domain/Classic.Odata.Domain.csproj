@@ -11,7 +11,7 @@
   </ItemGroup>
 	
 <ItemGroup>
-	<PackageReference Include="AutoMapper.AspNetCore.OData.EFCore" Version="4.0.2" />
+	<PackageReference Include="AutoMapper.AspNetCore.OData.EFCore" Version="5.0.0" />
 </ItemGroup>
 
 </Project>
